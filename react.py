@@ -12,12 +12,14 @@ def triple(num: float) -> float:
     :param num: a number to triple
     :return: he triple number
     """
+    print("it was called")
     return float(num) * 3
 
-tools = [TavilySearch(max_results=1), triple]
+# if you want less TavilySearch calls we can change max_results to 5, for example.
+tools = [TavilySearch(max_results=3), triple]
 
 llm = ChatOllama(
-    model="llama3",
+    model="qwen2.5",
     temperature=0,
 ).bind_tools(tools)
 

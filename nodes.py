@@ -7,7 +7,9 @@ from react import llm, tools
 load_dotenv()
 
 SYSTEM_MESSAGE="""
-You are a helpful assistant that can use tools to answer questions.
+You are a helpful assistant that can use tools to answer questions. Use one tool at a time. First try to identify if you have
+a tool for your intent. If you do, use it. If you don't, answer the question to the best of your ability. 
+If you are unsure about the answer, say that
 """
 
 # This is the reasoning node
@@ -22,7 +24,7 @@ def run_agent_reasoning(state: MessagesState) -> MessagesState:
         Updated MessagesState after processing the agent's reasoning.
     """
 
-    response = llm.invoke({"role": "system", "content": SYSTEM_MESSAGE}, *state["messages"])
+    response = llm.invoke([{"role": "system", "content": SYSTEM_MESSAGE}, *state["messages"]])
     return {"messages": [response]}
 
 tool_node = ToolNode(tools)
