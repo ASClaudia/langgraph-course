@@ -12,7 +12,7 @@ from langchain_ollama import ChatOllama
 
 from schemas import AnswerQuestion, ReviseAnswer
 
-llm = ChatOllama(model="qwen2.5:latest", temperature=0.5)
+llm = ChatOllama(model="llama3.1:latest", temperature=0.5)
 parser = JsonOutputToolsParser(return_id=True)
 # it's going to take the answer from the llm and create an AnswerQuestion object we can easily work with.
 parser_pydantic = PydanticToolsParser(tools=[AnswerQuestion])
@@ -46,6 +46,8 @@ first_responder = first_responder_prompt_template | llm.bind_tools(
     tools=[AnswerQuestion], tool_choice="AnswerQuestion"
 )
 
+# structured_llm = llm.with_structured_output(AnswerQuestion)
+# first_responder = first_responder_prompt_template | structured_llm
 
 revise_instructions = """Revise your previous answer using the new information.
     - You should use the previous critique to add important information to your answer.
@@ -56,9 +58,16 @@ revise_instructions = """Revise your previous answer using the new information.
     - You should use the previous critique to remove superfluous information from your answer and make SURE it is not more than 250 words.
 """
 
-revisor = actor_prompt_template.partial(
+revisor_prompt_template = actor_prompt_template.partial(
     first_instruction=revise_instructions
-) | llm.bind_tools(tools=[ReviseAnswer], tool_choice="ReviseAnswer")
+)
+
+revisor = (revisor_prompt_template
+           | llm.bind_tools(tools=[ReviseAnswer], tool_choice="ReviseAnswer")
+           )
+
+# structured_llm = llm.with_structured_output(ReviseAnswer)
+# revisor = revisor_prompt_template | structured_llm
 
 
 if __name__ == "__main__":
