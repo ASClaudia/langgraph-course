@@ -3,7 +3,8 @@ from typing import Any, Dict
 from graph.chains.retrieval_grader import retrieval_grader
 from graph.state import GraphState
 
-
+# we created a node for grade_documents, which updates the graph state, but for answer grader and hallucination grader,
+# we created directly conditional branches instead of nodes.
 def grade_documents(state: GraphState) -> Dict[str, Any]:
     """
     Determines whether the retrieved documents are relevant to the question
