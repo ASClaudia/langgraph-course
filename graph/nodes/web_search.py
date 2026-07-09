@@ -15,7 +15,7 @@ def web_search(state: GraphState) -> Dict[str, Any]:
     question = state["question"]
 
     # at this stage, all the documents should be relevant, because they were filtered a step ago
-    documents = state["documents"]
+    documents = state.get("documents", None)
 
     tavily_results = web_search_tool.invoke({"query": question})
     joined_tavily_result = "\n".join(

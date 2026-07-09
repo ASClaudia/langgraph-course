@@ -2,10 +2,11 @@ from dotenv import load_dotenv
 
 from langgraph.graph import END, StateGraph
 
+from graph.chains.router import RouteQuery
 from graph.consts import RETRIEVE, GRADE_DOCUMENTS, GENERATE, WEBSEARCH
 from graph.nodes import generate, grade_documents, retrieve, web_search
 from graph.state import GraphState
-from graph.chains import answer_grader, hallucination_grader
+from graph.chains import answer_grader, hallucination_grader, question_router
 
 load_dotenv()
 
@@ -41,12 +42,22 @@ def grade_generation_grounded_in_documents_and_question(state) -> str:
             return "useful"
         else:
             print("---DECISION: GENERATION DOES NOT ADDRESS QUESTION---")
-            return "not useful"
+            return "not_useful"
     else:
         print("---DECISION: GENERATION IS NOT GROUNDED IN DOCUMENTS, RE-TRY---")
         return "not_supported"
 
 
+def route_entry_point(state) -> str:
+    print("---ROUTE ENTRY POINT---")
+    question = state["question"]
+    source: RouteQuery = question_router.invoke({"question": question})
+    if source.datasource == "vectorstore":
+        print("---ROUTE QUESTION TO RAG PIPELINE---")
+        return RETRIEVE
+    elif source.datasource == "websearch":
+        print("---ROUTE QUESTION TO WEB SEARCH---")
+        return WEBSEARCH
 
 workflow = StateGraph(GraphState)
 
@@ -55,7 +66,11 @@ workflow.add_node(GRADE_DOCUMENTS, grade_documents)
 workflow.add_node(GENERATE, generate)
 workflow.add_node(WEBSEARCH, web_search)
 
-workflow.set_entry_point(RETRIEVE)
+workflow.set_conditional_entry_point(
+    route_entry_point,
+    {RETRIEVE: RETRIEVE, WEBSEARCH: WEBSEARCH}
+)
+
 workflow.add_edge(RETRIEVE, GRADE_DOCUMENTS)
 
 # this map is useful when the function which decides which node to go to is not returning the nodes name

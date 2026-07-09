@@ -6,7 +6,7 @@ load_dotenv()
 def main():
 
     print("Hello Advanced RAG")
-    print(app.invoke(input={"question": "what is agent memory?"}))
+    print(app.invoke(input={"question": "how is Clau?"}))
 
 
 if __name__ == "__main__":
